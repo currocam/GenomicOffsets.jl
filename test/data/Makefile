@@ -1,3 +1,3 @@
-example_data.jld rona.jld : prepare_regression_test.jl
+example_data.jld rona.jld rda.jld : prepare_regression_test.jl
 	@julia $<
 	
