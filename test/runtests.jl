@@ -93,6 +93,6 @@ function test_Ftest()
     test_tracy_widom()
     test_lfmm2()
     test_geometric()
-    #test_gradient_forest()
+    test_gradient_forest()
     test_Ftest()
 end
