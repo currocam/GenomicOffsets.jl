@@ -15,7 +15,8 @@ end
 function test_rda()
     data = open(deserialize, "data/example_data.jld")
     expected_output = open(deserialize, "data/rda.jld")
-    rda = RDA_GO(data.Y, data.X, data.Xpred)
+    model = fit(RDAGO, data.Y, data.X)
+    rda = genomic_offset(model, data.X, data.Xpred)
     @test norm(rda - expected_output) < 1e-10
   end
 

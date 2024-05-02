@@ -11,7 +11,7 @@ include("GEACandidates.jl")
 export RONA
 export fit
 export genomic_offset
-export RDA_GO
+export RDAGO
 export TracyWidom
 export RidgeLFMM
 export Geometric_GO
