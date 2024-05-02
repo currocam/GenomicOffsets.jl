@@ -122,3 +122,31 @@ geometric = (geometric_k2=geometric_k2, geometric_k3=geometric_k3, geometric_k25
 open("geometric.jld", "w") do io
     serialize(io, geometric)
 end
+
+R"""
+l2norm <- \(u, v) sqrt(sum((u-v)^2))
+gf_fn <- function(Y, X, Xpred){
+    Xcols <- paste0("X", 1:ncol(X))
+    colnames(X) <- Xcols
+    colnames(Xpred) <- Xcols
+    Ycols <- paste0("Y", 1:ncol(Y))
+    colnames(Y) <- Ycols
+    df_gf <- data.frame(Y, X)
+    gf <- gradientForest::gradientForest(data=df_gf, predictor.vars=Xcols, response.vars = Ycols, ntree=100)
+    currentcumimp <- predict(gf, data.frame(X))
+    futurcumimp <- predict(gf, data.frame(Xpred))
+    nb_ind <- nrow(X)
+    genetic_offset <- c()
+    for (i in seq(1,nb_ind)){
+        genetic_offset <- c(genetic_offset, l2norm(futurcumimp[i,], currentcumimp[i,]))
+    }
+    genetic_offset
+}
+gradient_offset <- gf_fn(Y, X, Xpred)
+"""
+
+@rget gradient_offset
+
+open("gradientforest.jld", "w") do io
+    serialize(io, gradient_offset)
+end

@@ -65,6 +65,19 @@ function test_geometric()
   Geometric_GO(data.Y, data.X, data.Xpred; tw_threshold=0.005)
 end
 
+function test_gradient_forest()
+  data = open(deserialize, "data/example_data.jld")
+  expected_output = open(deserialize, "data/gradientforest.jld")
+  # Check that, if using the same seed and same data, the model is the same
+  # TODO: check seed
+  #models = [GenomicOffsets.GradientForest.gradient_forest(data.Y, data.X; ntrees =10, rng=100).R2p for _ in 1:5]
+  #for i in 2:5
+  #  @test norm(models[1] - models[i]) < 1e-10
+  #end  
+  offset = GradientForest_GO(data.Y, data.X, data.Xpred; ntrees = 100)
+  @test cor(offset,expected_output) > 0.7
+ end
+
 @testset "GenomicOffsets.jl" begin
     # Write your tests here.
     test_rona()
@@ -72,4 +85,5 @@ end
     test_tracy_widom()
     test_lfmm2()
     test_geometric()
+    test_gradient_forest()
 end
