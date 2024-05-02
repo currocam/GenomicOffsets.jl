@@ -108,3 +108,17 @@ lfmm2s = (lfmm2_k2=lfmm2_k2, lfmm2_k3=lfmm2_k3, lfmm2_k25=lfmm2_k25)
 open("lfmm2.jld", "w") do io
     serialize(io, lfmm2s)
 end
+
+R"""
+geometric_k2 <- LEA::genetic.gap(Y, X, X, Xpred, K = 2, scale = TRUE)$offset
+geometric_k3 <- LEA::genetic.gap(Y, X, X, Xpred, K = 3, scale = TRUE)$offset
+geometric_k25 <- LEA::genetic.gap(Y, X, X, Xpred, K = 25, scale = TRUE)$offset
+"""
+
+@rget geometric_k2; @rget geometric_k3; @rget geometric_k25
+
+geometric = (geometric_k2=geometric_k2, geometric_k3=geometric_k3, geometric_k25=geometric_k25)
+
+open("geometric.jld", "w") do io
+    serialize(io, geometric)
+end

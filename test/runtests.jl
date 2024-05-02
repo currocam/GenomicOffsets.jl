@@ -50,10 +50,26 @@ function test_lfmm2()
   check_lfmm(expected_outputs[:lfmm2_k25], RidgeLFMM(Y, X, 25))
 end
 
+function test_geometric()
+  data = open(deserialize, "data/example_data.jld")
+  expected_outputs = open(deserialize, "data/geometric.jld")
+  @test norm(Geometric_GO(data.Y, data.X, data.Xpred, 2) - expected_outputs[:geometric_k2]) < 1e-10
+  @test norm(Geometric_GO(data.Y, data.X, data.Xpred, 3) - expected_outputs[:geometric_k3]) < 1e-10
+  @test norm(Geometric_GO(data.Y, data.X, data.Xpred, 25) - expected_outputs[:geometric_k25]) < 1e-10
+  # Check that runs
+  Geometric_GO(data.Y, data.X, data.Xpred)
+  Geometric_GO(data.Y, data.X, data.Xpred, 2; center=false)
+  Geometric_GO(data.Y, data.X, data.Xpred, 2; scale=false)
+  Geometric_GO(data.Y, data.X, data.Xpred, 2; tw_threshold=0.1)
+  Geometric_GO(data.Y, data.X, data.Xpred; tw_threshold=0.1)
+  Geometric_GO(data.Y, data.X, data.Xpred; tw_threshold=0.005)
+end
+
 @testset "GenomicOffsets.jl" begin
     # Write your tests here.
     test_rona()
     test_rda()
     test_tracy_widom()
     test_lfmm2()
+    test_geometric()
 end
