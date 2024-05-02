@@ -55,16 +55,18 @@ end
 function test_geometric()
   data = open(deserialize, "data/example_data.jld")
   expected_outputs = open(deserialize, "data/geometric.jld")
-  @test norm(Geometric_GO(data.Y, data.X, data.Xpred, 2) - expected_outputs[:geometric_k2]) < 1e-10
-  @test norm(Geometric_GO(data.Y, data.X, data.Xpred, 3) - expected_outputs[:geometric_k3]) < 1e-10
-  @test norm(Geometric_GO(data.Y, data.X, data.Xpred, 25) - expected_outputs[:geometric_k25]) < 1e-10
+  models = [fit(GeometricGO, data.Y, data.X, k) for k in [2, 3, 25]]
+  expected_offsets = [expected_outputs[:geometric_k2], expected_outputs[:geometric_k3], expected_outputs[:geometric_k25]]
+  for (model, offset) in zip(models, expected_offsets)
+    @test norm(genomic_offset(model, data.X, data.Xpred) - offset) < 1e-10
+  end
   # Check that runs
-  Geometric_GO(data.Y, data.X, data.Xpred)
-  Geometric_GO(data.Y, data.X, data.Xpred, 2; center=false)
-  Geometric_GO(data.Y, data.X, data.Xpred, 2; scale=false)
-  Geometric_GO(data.Y, data.X, data.Xpred, 2; tw_threshold=0.1)
-  Geometric_GO(data.Y, data.X, data.Xpred; tw_threshold=0.1)
-  Geometric_GO(data.Y, data.X, data.Xpred; tw_threshold=0.005)
+  genomic_offset(fit(GeometricGO, data.Y, data.X), data.X, data.Xpred)
+  genomic_offset(fit(GeometricGO, data.Y, data.X, 2; center=false), data.X, data.Xpred)
+  genomic_offset(fit(GeometricGO, data.Y, data.X, 2; scale=false), data.X, data.Xpred)
+  genomic_offset(fit(GeometricGO, data.Y, data.X, 2; tw_threshold=0.1), data.X, data.Xpred)
+  genomic_offset(fit(GeometricGO, data.Y, data.X; tw_threshold=0.1), data.X, data.Xpred)
+  genomic_offset(fit(GeometricGO, data.Y, data.X; tw_threshold=0.005), data.X, data.Xpred)
 end
 
 function test_gradient_forest()

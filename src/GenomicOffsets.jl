@@ -14,6 +14,6 @@ export genomic_offset
 export RDAGO
 export TracyWidom
 export RidgeLFMM
-export Geometric_GO
+export GeometricGO
 export GradientForest_GO
 end
