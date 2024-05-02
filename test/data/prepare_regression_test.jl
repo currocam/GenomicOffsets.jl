@@ -61,3 +61,22 @@ rda <- rda_fn(Y, X, Xpred)
 open("rda.jld", "w") do io
     serialize(io, rda)
 end
+
+R"""
+
+tw_fn <- function(Y){
+    pca.res <- prcomp(Y)
+    eigenvalues <- pca.res$sdev^2
+    eigenvalues <- eigenvalues[order(-eigenvalues)]
+    tracywindom_statistic <- AssocTests::tw(
+        eigenvalues =eigenvalues, eigenL = length(eigenvalues)
+        )
+}
+tw <- tw_fn(Y)
+"""
+
+@rget tw
+
+open("tracywidom.jld", "w") do io
+    serialize(io, tw)
+end
