@@ -78,7 +78,8 @@ function test_gradient_forest()
   #for i in 2:5
   #  @test norm(models[1] - models[i]) < 1e-10
   #end  
-  offset = GradientForest_GO(data.Y, data.X, data.Xpred; ntrees = 100)
+  model = fit(GradientForestGO, data.Y, data.X; ntrees = 100)
+  offset = genomic_offset(model, data.X, data.Xpred)
   @test cor(offset,expected_output) > 0.7
  end
 

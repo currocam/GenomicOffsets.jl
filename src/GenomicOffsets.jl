@@ -15,5 +15,5 @@ export RDAGO
 export TracyWidom
 export RidgeLFMM
 export GeometricGO
-export GradientForest_GO
+export GradientForestGO
 end
