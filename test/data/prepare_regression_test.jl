@@ -85,19 +85,22 @@ lfmm2_k2 <- LEA::lfmm2(Y, X, 2, effect.sizes = TRUE)
 lfmm2_k2 <- list(
     U = as.matrix(lfmm2_k2@U),
     V = as.matrix(lfmm2_k2@V),
-    B = as.matrix(lfmm2_k2@B)
+    B = as.matrix(lfmm2_k2@B),
+    pvalues = LEA::lfmm2.test(lfmm2_k2, input=Y, env=X, full=TRUE, genomic.control=TRUE)$pvalues
 )
 lfmm2_k3 <- LEA::lfmm2(Y, X, 3, effect.sizes = TRUE)
 lfmm2_k3 <- list(
     U = as.matrix(lfmm2_k3@U),
     V = as.matrix(lfmm2_k3@V),
-    B = as.matrix(lfmm2_k3@B)
+    B = as.matrix(lfmm2_k3@B),
+    pvalues = LEA::lfmm2.test(lfmm2_k3, input=Y, env=X, full=TRUE, genomic.control=TRUE)$pvalues
 )
 lfmm2_k25 <- LEA::lfmm2(Y, X, 25, effect.sizes = TRUE)
 lfmm2_k25 <- list(
     U = as.matrix(lfmm2_k25@U),
     V = as.matrix(lfmm2_k25@V),
-    B = as.matrix(lfmm2_k25@B)
+    B = as.matrix(lfmm2_k25@B),
+    pvalues = LEA::lfmm2.test(lfmm2_k25, input=Y, env=X, full=TRUE, genomic.control=TRUE)$pvalues
 )
 """
 

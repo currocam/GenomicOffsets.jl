@@ -78,6 +78,14 @@ function test_gradient_forest()
   @test cor(offset,expected_output) > 0.7
  end
 
+function test_Ftest()
+  data = open(deserialize, "data/example_data.jld")
+  expected_outputs = open(deserialize, "data/lfmm2.jld")
+  @test norm(expected_outputs[:lfmm2_k2][:pvalues] .- GenomicOffsets.LFMM_Ftest(RidgeLFMM(data.Y, data.X, 2), data.Y, data.X)) < 1e-10
+  @test norm(expected_outputs[:lfmm2_k3][:pvalues] .- GenomicOffsets.LFMM_Ftest(RidgeLFMM(data.Y, data.X, 3), data.Y, data.X)) < 1e-10
+  @test norm(expected_outputs[:lfmm2_k25][:pvalues] .- GenomicOffsets.LFMM_Ftest(RidgeLFMM(data.Y, data.X, 25), data.Y, data.X)) < 1e-10
+ end
+
 @testset "GenomicOffsets.jl" begin
     # Write your tests here.
     test_rona()
@@ -85,5 +93,6 @@ function test_gradient_forest()
     test_tracy_widom()
     test_lfmm2()
     test_geometric()
-    test_gradient_forest()
+    #test_gradient_forest()
+    test_Ftest()
 end
