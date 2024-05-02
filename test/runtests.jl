@@ -7,7 +7,8 @@ using Statistics
 function test_rona()
   data = open(deserialize, "data/example_data.jld")
   expected_output = open(deserialize, "data/rona.jld")
-  rona = RONA(data.Y, data.X, data.Xpred)
+  model = fit(RONA, data.Y, data.X)
+  rona = genomic_offset(model, data.X, data.Xpred)
   @test norm(rona - expected_output) < 1e-10
 end
 

@@ -9,6 +9,8 @@ include("GradientForest.jl")
 include("GradientForest_GO.jl")
 include("GEACandidates.jl")
 export RONA
+export fit
+export genomic_offset
 export RDA_GO
 export TracyWidom
 export RidgeLFMM
