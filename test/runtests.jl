@@ -35,9 +35,25 @@ function test_tracy_widom()
   @test findfirst(pvalues .> 0.01) - 1 == Int(expected_output[:SigntEigenL])
 end
 
+function test_lfmm2()
+  data = open(deserialize, "data/example_data.jld")
+  expected_outputs = open(deserialize, "data/lfmm2.jld")
+  Y = data.Y
+  X = data.X
+  function check_lfmm(expected, actual)
+    @test norm(expected[:U] - actual.U) < 1e-10    
+    @test norm(expected[:V] - actual.Vt') < 1e-10
+    @test norm(expected[:B] - actual.Bt') < 1e-10
+  end
+  check_lfmm(expected_outputs[:lfmm2_k2], RidgeLFMM(Y, X, 2))
+  check_lfmm(expected_outputs[:lfmm2_k3], RidgeLFMM(Y, X, 3))
+  check_lfmm(expected_outputs[:lfmm2_k25], RidgeLFMM(Y, X, 25))
+end
+
 @testset "GenomicOffsets.jl" begin
     # Write your tests here.
     test_rona()
     test_rda()
     test_tracy_widom()
+    test_lfmm2()
 end
