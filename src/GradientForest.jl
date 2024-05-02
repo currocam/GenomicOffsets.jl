@@ -82,7 +82,7 @@ function composite_turnover(x, f)
     extrapolate(interpolate(x, F, FiniteDifferenceMonotonicInterpolation()), Flat())
 end
 
-function gradient_forest(Y, X; ntrees =500, nbins = 2^10, mtry = ceil(size(X, 2) / 3), npermiter = 1)
+function gradient_forest(Y, X; ntrees =500, nbins = 2^7, mtry = ceil(size(X, 2) / 3), npermiter = 1)
     N, P = size(X)
     _, L = size(Y)
     # goodness-of-fit measure for the forest for allele f
@@ -106,7 +106,7 @@ function gradient_forest(Y, X; ntrees =500, nbins = 2^10, mtry = ceil(size(X, 2)
     for f in 1:L
         y = view(Y,:, f)
         # Allocate yhat with NaN
-        yhat = Vector{Float64}(undef, N)
+        yhat = zeros(Float64, N)
         yhat_counter = zeros(Int64, N) # How many times a sample is out-of-bag
         permimp = zeros(P) # Permutation importance for each predictor
         forest = Vector{DecisionTree.Root}(undef, ntrees)
