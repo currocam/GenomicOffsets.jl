@@ -91,6 +91,14 @@ function test_Ftest()
   @test norm(expected_outputs[:lfmm2_k25][:pvalues] .- GenomicOffsets.LFMM_Ftest(RidgeLFMM(data.Y, data.X, 25), data.Y, data.X)) < 1e-10
  end
 
+ function bootstraps()
+  data = open(deserialize, "data/example_data.jld")
+  bootstrap(RONA, data.Y, data.X, data.Xpred)
+  bootstrap(RDAGO, data.Y, data.X, data.Xpred)
+  bootstrap(GradientForestGO, data.Y, data.X, data.Xpred; nboot=50)
+  bootstrap(GeometricGO, data.Y, data.X, data.Xpred)
+ end
+
 @testset "GenomicOffsets.jl" begin
     # Write your tests here.
     test_rona()
@@ -100,4 +108,5 @@ function test_Ftest()
     test_geometric()
     test_gradient_forest()
     test_Ftest()
+    bootstraps()
 end

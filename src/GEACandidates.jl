@@ -1,3 +1,4 @@
+using MultipleTesting
 """
     LFMM_Ftest(model::LFMM, Y::AbstractMatrix{T1}, X::AbstractMatrix{T2}; genomic_control::Bool=true, center=true) where {T1<:Real,T2<:Real}
 
@@ -38,4 +39,15 @@ function LFMM_Ftest(model::LFMM, Y::AbstractMatrix{T1}, X::AbstractMatrix{T2}; g
     end
     pvalues = 1 .- cdf.(dist, Fscores)
     return vec(pvalues)
+end
+
+function LFMMCandidates(Y::AbstractMatrix{T1}, X::AbstractMatrix{T2}; TW_threshold = 0.001, GEA_FDR=0.05) where {T1<:Real,T2<:Real}
+    Y = Y .- mean(Y, dims=1)
+    eigenvalues = eigvals(Y*Y'/(size(Y, 1)-1))
+    _, pvalues = GenomicOffsets.TracyWidom(eigenvalues)
+    K = findfirst(pvalues .> TW_threshold) - 1
+    pvalues = LFMM_Ftest(RidgeLFMM(Y, X, K, center=false), Y, X; genomic_control=true, center=false)
+    qvalues = adjust(pvalues, BenjaminiHochberg())
+    candidates = findall(qvalues .< GEA_FDR)
+    return candidates
 end
