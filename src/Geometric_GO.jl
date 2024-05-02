@@ -1,7 +1,7 @@
 """
 Geomtric genomic offset. TODO: Add reference
 """
-struct GeometricGO{T<:Real}
+struct GeometricGO{T<:Real} <: AbstractGO
   Cb::Matrix{T}
   K::Int
   λ::Real

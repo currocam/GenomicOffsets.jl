@@ -2,7 +2,7 @@ using Interpolations
 """
 Gradient genomic offset. TODO: Add reference
 """
-struct GradientForestGO
+struct GradientForestGO <: AbstractGO
   F::Vector{Interpolations.AbstractExtrapolation{Float64, 1}}
 end
 

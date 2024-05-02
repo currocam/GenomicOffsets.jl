@@ -4,7 +4,7 @@ using StatsBase
 """
 Redundancy Analysis (RDA) genomic offset. TODO: Add reference
 """
-struct RDAGO{T<:Real}
+struct RDAGO{T<:Real} <: AbstractGO
   W::Matrix{T}
 end
 

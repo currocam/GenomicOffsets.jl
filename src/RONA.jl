@@ -1,7 +1,8 @@
+using Random
 """
 Risk of non-adaptnesss (RONA) genomic offset. First proposed by [Rellstab et al. (2016)]( https://doi.org/10.1111/mec.13889).
 """
-struct RONA{T<:Real}
+struct RONA{T<:Real} <: AbstractGO
   B::Matrix{T}
 end
 
