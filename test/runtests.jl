@@ -3,6 +3,7 @@ using Test
 using Serialization
 using LinearAlgebra
 using Statistics
+using Random
 
 function test_rona()
   data = open(deserialize, "data/example_data.jld")
@@ -93,14 +94,14 @@ function test_Ftest()
 
  function bootstraps()
   data = open(deserialize, "data/example_data.jld")
-  bootstrap(RONA, data.Y, data.X, data.Xpred)
-  bootstrap(RDAGO, data.Y, data.X, data.Xpred)
-  bootstrap(GradientForestGO, data.Y, data.X, data.Xpred; nboot=50)
-  bootstrap(GeometricGO, data.Y, data.X, data.Xpred)
+  rng = Random.MersenneTwister(1234)
+  bootstrap_with_candidates(RONA, rng, data.Y, data.X, data.Xpred) ≈ bootstrap_with_candidates(RONA, rng, data.Y, data.X, data.Xpred)
+  bootstrap_with_candidates(RDAGO, rng, data.Y, data.X, data.Xpred) ≈ bootstrap_with_candidates(RDAGO, rng, data.Y, data.X, data.Xpred)
+  bootstrap_with_candidates(GradientForestGO, data.Y, data.X, data.Xpred, ntrees=10)
+  bootstrap_with_candidates(GeometricGO, data.Y, data.X, data.Xpred)
  end
 
 @testset "GenomicOffsets.jl" begin
-    # Write your tests here.
     test_rona()
     test_rda()
     test_tracy_widom()
