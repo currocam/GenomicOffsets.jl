@@ -11,9 +11,10 @@ Compute the Tracy-Widom statistics and p-values for a given set of eigenvalues. 
 # Returns
 - A tuple with the Tracy-Widom statistics and p-values. For a given threshold, it is advised not to keep all eigenvalues below the threshold, but up to the first one that is above the threshold (not included).
 """
-function TracyWidom(eigenvalues::AbstractVector{T}; sort_eigenvalues::Bool=true) where T<:Real
+function TracyWidom(eigenvalues::AbstractVector{T};
+                    sort_eigenvalues::Bool=true) where {T<:Real}
     if sort_eigenvalues
-        eigenvalues = sort(eigenvalues, rev=true)
+        eigenvalues = sort(eigenvalues; rev=true)
     end
     L1 = reverse(cumsum(reverse(eigenvalues)))
     L2 = reverse(cumsum(reverse(eigenvalues .^ 2)))
@@ -26,7 +27,7 @@ function TracyWidom(eigenvalues::AbstractVector{T}; sort_eigenvalues::Bool=true)
     N_st = .√(N)
     μ = (v_st .+ N_st) .^ 2 ./ v
     σ = (v_st .+ N_st) ./ v .* (1 ./ v_st .+ 1 ./ N_st) .^ (1 / 3)
-    twstat = (L .- μ) ./ σ 
+    twstat = (L .- μ) ./ σ
     pvalues = 1 .- cdf(RandomMatrices.TracyWidom(1), twstat)
     return twstat, pvalues
 end
@@ -65,16 +66,17 @@ Y = X B^T + W = X B^T + U V^T
 - A `LFMM{T<:Real}` data structure with the latent factors `U`, `Vt`, and the effect sizes `Bt`.
 
 """
-function RidgeLFMM(Y::Matrix{T1}, X::Matrix{T2}, K::Int, λ=1e-5; center=true) where {T1<:Real,T2<:Real}
+function RidgeLFMM(Y::Matrix{T1}, X::Matrix{T2}, K::Int, λ=1e-5;
+                   center=true) where {T1<:Real,T2<:Real}
     if size(Y, 1) != size(X, 1)
         throw(DimensionMismatch("The number of rows in Y and X must be equal."))
     end
     if center
-        Y = Y .- mean(Y, dims=1)
-        X = (X .- mean(X, dims=1))
+        Y = Y .- mean(Y; dims=1)
+        X = (X .- mean(X; dims=1))
     end
     n, p = size(X)
-    Q, Σ, _ = svd(X, full=true)
+    Q, Σ, _ = svd(X; full=true)
     d = ones(n)
     @. d[1:p] = √(λ / (λ + Σ))
     D = Diagonal(d)
