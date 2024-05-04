@@ -19,6 +19,9 @@ StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
 
 [compat]
 Distributions = "0.25"
+MultipleTesting = "0.6"
+KernelDensity = "0.6"
+DecisionTree = "0.12"
 julia = "1.6.7"
 
 [extras]
