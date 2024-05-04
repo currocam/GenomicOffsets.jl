@@ -2,11 +2,11 @@
 Geomtric genomic offset. TODO: Add reference
 """
 struct GeometricGO{T<:Real} <: AbstractGO
-  model::LFMM{T}
-  K::Int
-  λ::Real
-  mx::Union{Nothing, Matrix{T}}
-  sx::Union{Nothing, Matrix{T}}
+    model::LFMM{T}
+    K::Int
+    λ::Real
+    mx::Union{Nothing,Matrix{T}}
+    sx::Union{Nothing,Matrix{T}}
 end
 
 """
@@ -26,19 +26,22 @@ Fit the Geometric genomic offset model (that is, fit a LFMM) using the data `Y` 
 # Returns
   - A GeometricGO model.
 """
-function fit(::Type{GeometricGO}, Y::AbstractMatrix{T1}, X::AbstractMatrix{T2}, K::Union{Int, Nothing}=nothing; center=true,scale=true, tw_threshold::Real=1e-3, λ::Real=1e-5 ) where {T1<:Real,T2<:Real}
-    mx = nothing; sx = nothing
+function fit(::Type{GeometricGO}, Y::AbstractMatrix{T1}, X::AbstractMatrix{T2},
+             K::Union{Int,Nothing}=nothing; center=true, scale=true,
+             tw_threshold::Real=1e-3, λ::Real=1e-5) where {T1<:Real,T2<:Real}
+    mx = nothing
+    sx = nothing
     if center
-        Y = Y .-  mean(Y, dims=1)
-        mx = mean(X, dims=1)
+        Y = Y .- mean(Y; dims=1)
+        mx = mean(X; dims=1)
         X = X .- mx
     end
     if scale
-        sx = std(X, dims=1)
+        sx = std(X; dims=1)
         X = X ./ sx
     end
     if isnothing(K)
-        eigenvalues = eigvals(Y*Y'/(size(Y, 1)-1))
+        eigenvalues = eigvals(Y * Y' / (size(Y, 1) - 1))
         _, pvalues = GenomicOffsets.TracyWidom(eigenvalues)
         K = findfirst(pvalues .> tw_threshold) - 1
     end
@@ -58,7 +61,8 @@ end
 # Returns
   - A Vector{Float64} of length N with the Geometric genomic offset values.
 """
-function genomic_offset(model::GeometricGO, X::AbstractMatrix{T}, Xpred::AbstractMatrix{T}) where T<:Real
+function genomic_offset(model::GeometricGO, X::AbstractMatrix{T},
+                        Xpred::AbstractMatrix{T}) where {T<:Real}
     if !isnothing(model.mx)
         X = X .- model.mx
         Xpred = Xpred .- model.mx
@@ -90,11 +94,13 @@ end
 # Returns
   - A Vector{Float64} of length N with the Geometric genomic offset values.
 """
-function genomic_offset(model::GeometricGO{T}, X::AbstractMatrix{T}, Xpred::AbstractMatrix{T}, candidates::AbstractVector{T2}) where {T<:Real,T2<:Integer}
-  if length(candidates) == 0
-    return zeros(size(X, 1))
-  end  
-  if !isnothing(model.mx)
+function genomic_offset(model::GeometricGO{T}, X::AbstractMatrix{T},
+                        Xpred::AbstractMatrix{T},
+                        candidates::AbstractVector{T2}) where {T<:Real,T2<:Integer}
+    if length(candidates) == 0
+        return zeros(size(X, 1))
+    end
+    if !isnothing(model.mx)
         X = X .- model.mx
         Xpred = Xpred .- model.mx
     end
@@ -103,7 +109,7 @@ function genomic_offset(model::GeometricGO{T}, X::AbstractMatrix{T}, Xpred::Abst
         Xpred = Xpred ./ model.sx
     end
     offsets = zeros(size(X, 1))
-    Bt = model.model.Bt[:,candidates]
+    Bt = model.model.Bt[:, candidates]
     Cb = Bt * Bt' / length(candidates)
     for i in eachindex(offsets)
         diff = X[i, :] - Xpred[i, :]
@@ -131,25 +137,40 @@ Compute the Geometric genomic offset using a bootstrap approach. For every, boot
 # Returns
   - A matrix of size NxNboot with the genomic offset values. If no candidate loci are found, the row is filled with zeros.
 """
-function bootstrap_with_candidates(::Type{GeometricGO}, rng::Random.AbstractRNG, Y::AbstractMatrix{T1}, X::AbstractMatrix{T2}, Xpred::AbstractMatrix{T2}, nboot::Int=500; candidates_threshold::Real=0.05, genomic_control::Bool=true, tw_threshold::Real=0.001) where {T1<:Real, T2<:Real}
-  Y = Y .- mean(Y, dims=1)
-  X = X .- mean(X, dims=1)
-  X = X ./ std(X, dims=1)
-  _, L = size(Y)
-  offsets = zeros(size(Y, 1), nboot)
-  shared_seed = rand(rng, UInt)
-  Threads.@threads for i in 1:nboot
-    _rng = Random.seed!(copy(rng), shared_seed + i)
-    Yboot = Y[:,sample(_rng, 1:L, L, replace=true)]
-    eigenvalues = eigvals(Yboot*Yboot'/(size(Yboot, 1)-1))
-    _, pvalues = TracyWidom(eigenvalues)
-    K = max(findfirst(pvalues .> tw_threshold) - 1, 1)
-    model = GenomicOffsets.fit(GeometricGO, Yboot, X, K; center=false, scale=false)
-    pvalues = LFMM_Ftest(model.model, Yboot, X; genomic_control=genomic_control, center=false)
-    qvalues = MultipleTesting.adjust(pvalues, BenjaminiHochberg())
-    candidates = findall(qvalues .< candidates_threshold)
-    offsets[:,i] = genomic_offset(model, X, Xpred, candidates)
-  end
-  return offsets  
+function bootstrap_with_candidates(::Type{GeometricGO}, rng::Random.AbstractRNG,
+                                   Y::AbstractMatrix{T1}, X::AbstractMatrix{T2},
+                                   Xpred::AbstractMatrix{T2}, nboot::Int=500;
+                                   candidates_threshold::Real=0.05,
+                                   genomic_control::Bool=true,
+                                   tw_threshold::Real=0.001) where {T1<:Real,T2<:Real}
+    Y = Y .- mean(Y; dims=1)
+    X = X .- mean(X; dims=1)
+    X = X ./ std(X; dims=1)
+    _, L = size(Y)
+    offsets = zeros(size(Y, 1), nboot)
+    shared_seed = rand(rng, UInt)
+    Threads.@threads for i in 1:nboot
+        _rng = Random.seed!(copy(rng), shared_seed + i)
+        Yboot = Y[:, sample(_rng, 1:L, L; replace=true)]
+        eigenvalues = eigvals(Yboot * Yboot' / (size(Yboot, 1) - 1))
+        _, pvalues = TracyWidom(eigenvalues)
+        K = max(findfirst(pvalues .> tw_threshold) - 1, 1)
+        model = GenomicOffsets.fit(GeometricGO, Yboot, X, K; center=false, scale=false)
+        pvalues = LFMM_Ftest(model.model, Yboot, X; genomic_control=genomic_control,
+                             center=false)
+        qvalues = MultipleTesting.adjust(pvalues, BenjaminiHochberg())
+        candidates = findall(qvalues .< candidates_threshold)
+        offsets[:, i] = genomic_offset(model, X, Xpred, candidates)
+    end
+    return offsets
 end
-bootstrap_with_candidates(::Type{GeometricGO}, Y::AbstractMatrix{T1}, X::AbstractMatrix{T2}, Xpred::AbstractMatrix{T2}, nboot::Int=500; candidates_threshold::Real=0.05, genomic_control::Bool=true, tw_threshold::Real=0.001) where {T1<:Real, T2<:Real} = bootstrap_with_candidates(GeometricGO, Random.GLOBAL_RNG, Y, X, Xpred, nboot; candidates_threshold=candidates_threshold, genomic_control=genomic_control, tw_threshold=tw_threshold)
+function bootstrap_with_candidates(::Type{GeometricGO}, Y::AbstractMatrix{T1},
+                                   X::AbstractMatrix{T2}, Xpred::AbstractMatrix{T2},
+                                   nboot::Int=500; candidates_threshold::Real=0.05,
+                                   genomic_control::Bool=true,
+                                   tw_threshold::Real=0.001) where {T1<:Real,T2<:Real}
+    return bootstrap_with_candidates(GeometricGO, Random.GLOBAL_RNG, Y, X, Xpred, nboot;
+                                     candidates_threshold=candidates_threshold,
+                                     genomic_control=genomic_control,
+                                     tw_threshold=tw_threshold)
+end
