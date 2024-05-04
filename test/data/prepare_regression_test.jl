@@ -8,11 +8,13 @@ Y <- offset_example$geno
 X <- offset_example$env
 Xpred <- offset_example$env.pred
 """
-@rget Y; @rget X; @rget Xpred
+@rget Y;
+@rget X;
+@rget Xpred;
 
 example_data = (Y=Y, X=X, Xpred=Xpred)
 open("example_data.jld", "w") do io
-    serialize(io, example_data)
+    return serialize(io, example_data)
 end
 
 # RONA from Gain et al
@@ -35,7 +37,7 @@ rona <- rona_fn(Y, X, Xpred)
 
 @rget rona
 open("rona.jld", "w") do io
-    serialize(io, rona)
+    return serialize(io, rona)
 end
 
 # RDA from Gain et al
@@ -59,7 +61,7 @@ rda <- rda_fn(Y, X, Xpred)
 
 @rget rda
 open("rda.jld", "w") do io
-    serialize(io, rda)
+    return serialize(io, rda)
 end
 
 R"""
@@ -77,7 +79,7 @@ tw <- tw_fn(Y)
 @rget tw
 
 open("tracywidom.jld", "w") do io
-    serialize(io, tw)
+    return serialize(io, tw)
 end
 
 R"""
@@ -104,12 +106,14 @@ lfmm2_k25 <- list(
 )
 """
 
-@rget lfmm2_k2; @rget lfmm2_k3; @rget lfmm2_k25
+@rget lfmm2_k2;
+@rget lfmm2_k3;
+@rget lfmm2_k25;
 
 lfmm2s = (lfmm2_k2=lfmm2_k2, lfmm2_k3=lfmm2_k3, lfmm2_k25=lfmm2_k25)
 
 open("lfmm2.jld", "w") do io
-    serialize(io, lfmm2s)
+    return serialize(io, lfmm2s)
 end
 
 R"""
@@ -118,12 +122,15 @@ geometric_k3 <- LEA::genetic.gap(Y, X, X, Xpred, K = 3, scale = TRUE)$offset
 geometric_k25 <- LEA::genetic.gap(Y, X, X, Xpred, K = 25, scale = TRUE)$offset
 """
 
-@rget geometric_k2; @rget geometric_k3; @rget geometric_k25
+@rget geometric_k2;
+@rget geometric_k3;
+@rget geometric_k25;
 
-geometric = (geometric_k2=geometric_k2, geometric_k3=geometric_k3, geometric_k25=geometric_k25)
+geometric = (geometric_k2=geometric_k2, geometric_k3=geometric_k3,
+             geometric_k25=geometric_k25)
 
 open("geometric.jld", "w") do io
-    serialize(io, geometric)
+    return serialize(io, geometric)
 end
 
 R"""
@@ -151,5 +158,5 @@ gradient_offset <- gf_fn(Y, X, Xpred)
 @rget gradient_offset
 
 open("gradientforest.jld", "w") do io
-    serialize(io, gradient_offset)
+    return serialize(io, gradient_offset)
 end
