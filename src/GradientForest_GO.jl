@@ -27,7 +27,7 @@ end
 """
     genomic_offset(model::GradientForestGO, X::AbstractMatrix{T}, Xpred::AbstractMatrix{T}) where T<:Real
   
-Compute the Gradient Forest genomic offset.
+Compute the Gradient Forest genomic offset. Attention! Our implementation does not perform extrapolation, which means that you may obtain unpredictable results if you try so. 
 
 # Arguments
 - `model::GradientForestGO`: A GeometricGO model.
