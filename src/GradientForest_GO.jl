@@ -74,8 +74,12 @@ function bootstrap_with_candidates(::Type{GradientForestGO}, rng::Random.Abstrac
                                    genomic_control::Bool=true,
                                    tw_threshold::Real=0.001) where {T1<:Real,T2<:Real}
     Y = Y .- mean(Y; dims=1)
-    X = X .- mean(X; dims=1)
-    X = X ./ std(X; dims=1)
+    mx = mean(X; dims=1)
+    X = X .- mx
+    Xpred = Xpred .- mx
+    sx = std(X; dims=1)
+    X = X ./ sx
+    Xpred = X ./ sx
     _, L = size(Y)
     offsets = zeros(size(Y, 1), nboot)
     shared_seed = rand(rng, UInt)

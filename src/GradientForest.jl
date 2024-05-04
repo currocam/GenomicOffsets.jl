@@ -21,10 +21,10 @@ function permutation_importance!(importances, y, X, tree, K=30,
         original = copy(X[:, p])
         for _ in 1:K
             X[:, p] = shuffle(rng, X[:, p])
-            importances[p] += mean((y .- apply_tree(tree, X)) .^ 2)
+            importances[p] += mean((y .- apply_tree(tree, X)) .^ 2) - baseline
         end
         X[:, p] = original
-        importances[p] = importances[p] / K - baseline
+        importances[p] /=  K 
     end
 end
 
@@ -55,6 +55,9 @@ function update_raw_importances!(Ipb, densities, node, inds, y, X)
     queue = [(node, inds)]
     while !isempty(queue)
         (node, inds) = popfirst!(queue)
+        if node isa Leaf
+            continue
+        end
         if node.featid < 1
             continue
         end
@@ -64,7 +67,7 @@ function update_raw_importances!(Ipb, densities, node, inds, y, X)
         split_imp = impurity(view(y, inds)) - impurity(view(y, left_indexes)) -
                     impurity(view(y, right_indexes))
         Ipb[node.featid, bin(node.featval, densities[node.featid].x)] += split_imp
-        if typeof(node.left) != Leaf{Float64} && sum(condition) > 0
+        if typeof(node.left) != Leaf && sum(condition) > 0
             push!(queue, (node.left, inds[condition]))
         end
         if typeof(node.right) != Leaf && length(inds) - sum(condition) > 0
@@ -84,7 +87,7 @@ function composite_turnover(x, f)
 end
 
 function gradient_forest(Y, X; ntrees=500, nbins=2^7, mtry=ceil(size(X, 2) / 3),
-                         npermiter=1, rng::Random.AbstractRNG=Random.GLOBAL_RNG)
+                         npermiter=10, rng::Random.AbstractRNG=Random.GLOBAL_RNG)
     N, P = size(X)
     _, L = size(Y)
     # goodness-of-fit measure for the forest for allele f
@@ -155,26 +158,34 @@ function gradient_forest(Y, X; ntrees=500, nbins=2^7, mtry=ceil(size(X, 2) / 3),
             end
         end
         # Compute the partitionated goodness-of-fit measure
-        R2pf[:, f] = R2f[f] .* Ipf[:, f] / sum(Ipf[:, f])
+        total = sum(Ipf[:, f]) + 1e-8
+        if total > 0
+            R2pf[:, f] = R2f[f] .* Ipf[:, f] / total
+        end
     end
 
     # Overall importance of predictor p 
     R2p = sum(R2pf; dims=2) / L
-
-    # Compute the sum across the bins
-    sumIpf = reshape(sum(Ifpb; dims=3), P, L)
-    # Ip(x)\Delta X / dp(x)
-    Ip_dp = zeros(P, nbins)
+    # fp(x) = Ip(x)\Delta X / dp(x)
+    fps = zeros(P, nbins)
     for p in 1:P
         for f in 1:L
+            normalizingfactor = 0
             for s in 1:nbins
-                Ip_dp[p, s] += R2pf[p, f] * Ifpb[f, p, s] / sumIpf[p, f]
+                normalizingfactor += Ifpb[f, p, s]
+            end
+            for s in 1:nbins
+                fps[p, s] += R2pf[p, f] * Ifpb[f, p, s] / normalizingfactor
             end
         end
-        Ip_dp[p, :] ./= L * step(densities[p].x)
+        fps[p, :] ./= L * step(densities[p].x)
     end
+    # For testing purposes
+    #@assert NumericalIntegration.integrate(densities[1].x, fps[1,:]) ≈ R2p[1]
     # Now we have to compute the composite cumulative importance
-    F = [composite_turnover(densities[p].x, Ip_dp[p, :]) for p in 1:P]
+    F = [composite_turnover(densities[p].x, fps[p, :]) for p in 1:P]
+    #@assert F[1](-Inf) ≈ 0
+    #@assert F[1](+Inf) ≈ R2p[1]
     return (R2p=R2p, F=F)
 end
 end
