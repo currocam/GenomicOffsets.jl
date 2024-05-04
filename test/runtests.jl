@@ -99,17 +99,16 @@ end
 function bootstraps()
     data = open(deserialize, "data/example_data.jld")
     for type in [RONA, RDAGO, GeometricGO]
-        seed = rand(Int)
-        rng = Random.default_rng(seed)
+        rng = Random.default_rng()
         @test bootstrap_with_candidates(type, copy(rng), data.Y, data.X, data.Xpred,
                                         100) ≈
               bootstrap_with_candidates(type, copy(rng), data.Y, data.X, data.Xpred,
                                         100)
     end
     # TODO: check GradientForest
-    @test isa(bootstrap_with_candidates(GradientForestGO, data.Y, data.X,
-                                    data.Xpred,
-                                    100; ntrees=20), Matrix{Float64})
+    boots = bootstrap_with_candidates(GradientForestGO, data.Y, data.X, data.Xpred, 100;
+                                      ntrees=20)
+    @test size(boots) == (size(data.Xpred, 1), 100)
 end
 
 @testset "GenomicOffsets.jl" begin
