@@ -7,7 +7,7 @@ struct GradientForestGO <: AbstractGO
 end
 
 """
-  fit(::Type{GeometricGO}, Y::AbstractMatrix{T1}, X::AbstractMatrix{T2}) where {T1<:Real,T2<:Real}
+    fit(::Type{GradientForestGO}, Y::AbstractMatrix{T1}, X::AbstractMatrix{T2}; ntrees::Int=100) where {T1<:Real,T2<:Real}
 
 Fit the Gradient forest genomic offset model (that is, fit a Gradient Forest) using the data `Y` and `X`.
 
@@ -25,9 +25,9 @@ function fit(::Type{GradientForestGO}, Y::AbstractMatrix{T1}, X::AbstractMatrix{
 end
 
 """
-  genomic_offset(model::GradientForestGO, X::AbstractMatrix{T}, Xpred::AbstractMatrix{T}) where T<:Real
+    genomic_offset(model::GradientForestGO, X::AbstractMatrix{T}, Xpred::AbstractMatrix{T}) where T<:Real
   
-  Compute the Gradient Forest genomic offset.
+Compute the Gradient Forest genomic offset.
 
 # Arguments
 - `model::GradientForestGO`: A GeometricGO model.
@@ -48,9 +48,9 @@ function genomic_offset(model::GradientForestGO, X::AbstractMatrix{T},
 end
 
 """
-  bootstrap_with_candidates(::Type{GradientForestGO}, rng::Random.AbstractRNG, Y::AbstractMatrix{T1}, X::AbstractMatrix{T2}, Xpred::AbstractMatrix{T2}, nboot::Int=500; ntrees::Int=100, candidates_threshold::Real=0.05, genomic_control::Bool=true, tw_threshold::Real=0.001) where {T1<:Real, T2<:Real}  
-
-  Compute the Gradient Forest genomic offset using a bootstrap approach. For every, bootstrap iteration, the model is fitted using a random subset of the columns of `Y`. The Tracy-Widom test is used to estimate the number of latent factors. The F-test is used to select putatively adaptative loci. The genomic offset is computed for the selected loci.
+    bootstrap_with_candidates(::Type{GradientForestGO}, rng::Random.AbstractRNG,Y::AbstractMatrix{T1}, X::AbstractMatrix{T2}, Xpred::AbstractMatrix{T2}, nboot::Int=500; ntrees::Int=100, candidates_threshold::Real=0.05, genomic_control::Bool=true, tw_threshold::Real=0.001) where {T1<:Real,T2<:Real}
+  
+Compute the Gradient Forest genomic offset using a bootstrap approach. For every, bootstrap iteration, the model is fitted using a random subset of the columns of `Y`. The Tracy-Widom test is used to estimate the number of latent factors. The F-test is used to select putatively adaptative loci. The genomic offset is computed for the selected loci.
 
 # Arguments
 - `rng::Random.AbstractRNG`: Random number generator. If not provided, the global RNG is used.

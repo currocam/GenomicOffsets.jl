@@ -9,7 +9,7 @@ struct RDAGO{T<:Real} <: AbstractGO
 end
 
 """
-  fit(::Type{RDAGO}, Y::AbstractMatrix{T1}, X::AbstractMatrix{T2}) where {T1<:Real,T2<:Real}
+    fit(::Type{RDAGO}, Y::AbstractMatrix{T1}, X::AbstractMatrix{T2}) where {T1<:Real,T2<:Real}
 
 Fit the RDA model (that is, apply Redundancy Analysis) using the data `Y` and `X`.
 
@@ -31,9 +31,9 @@ function fit(::Type{RDAGO}, Y::AbstractMatrix{T1},
 end
 
 """
-  genomic_offset(model::RDAGO, X::AbstractMatrix{T}, Xpred::AbstractMatrix{T}) where T<:Real
+    genomic_offset(model::RDAGO, X::AbstractMatrix{T}, Xpred::AbstractMatrix{T}) where T<:Real
   
-  Compute the RDA genomic offset.
+Compute the RDA genomic offset.
 
 # Arguments
 - `model::RDAGO`: A RDAGO model.
@@ -51,7 +51,7 @@ function genomic_offset(model::RDAGO, X::AbstractMatrix{T},
 end
 
 """
-  bootstrap_with_candidates(::Type{RDAGO}, rng::Random.AbstractRNG, Y::AbstractMatrix{T1}, X::AbstractMatrix{T2}, Xpred::AbstractMatrix{T2}, nboot::Int=500; candidates_threshold::Real=0.05, genomic_control::Bool=true, tw_threshold::Real=0.001) where {T1<:Real, T2<:Real}  
+    bootstrap_with_candidates(::Type{RDAGO}, rng::Random.AbstractRNG, Y::AbstractMatrix{T1}, X::AbstractMatrix{T2}, Xpred::AbstractMatrix{T2}, nboot::Int=500; candidates_threshold::Real=0.05, genomic_control::Bool=true, tw_threshold::Real=0.001) where {T1<:Real, T2<:Real}  
   
 Compute the RDA genomic offset using a bootstrap approach. For every, bootstrap iteration, the model is fitted using a random subset of the columns of `Y`. The Tracy-Widom test is used to estimate the number of latent factors. The F-test is used to select putatively adaptative loci. The genomic offset is computed for the selected loci.
 
