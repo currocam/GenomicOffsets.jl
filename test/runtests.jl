@@ -99,10 +99,11 @@ end
 function bootstraps()
     data = open(deserialize, "data/example_data.jld")
     for type in [RONA, RDAGO, GeometricGO]
-        seed = rand(UInt)
-        @test bootstrap_with_candidates(type, Xoshiro(seed), data.Y, data.X, data.Xpred,
+        seed = rand(Int)
+        rng = Random.default_rng(seed)
+        @test bootstrap_with_candidates(type, copy(rng), data.Y, data.X, data.Xpred,
                                         100) ≈
-              bootstrap_with_candidates(type, Xoshiro(seed), data.Y, data.X, data.Xpred,
+              bootstrap_with_candidates(type, copy(rng), data.Y, data.X, data.Xpred,
                                         100)
     end
     # TODO: check GradientForest
