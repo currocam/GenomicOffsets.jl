@@ -24,7 +24,7 @@ function permutation_importance!(importances, y, X, tree, K=30,
             importances[p] += mean((y .- apply_tree(tree, X)) .^ 2) - baseline
         end
         X[:, p] = original
-        importances[p] /=  K 
+        importances[p] = max(0, importances[p]/K)
     end
 end
 
@@ -66,7 +66,7 @@ function update_raw_importances!(Ipb, densities, node, inds, y, X)
         right_indexes = inds[.!condition]
         split_imp = impurity(view(y, inds)) - impurity(view(y, left_indexes)) -
                     impurity(view(y, right_indexes))
-        Ipb[node.featid, bin(node.featval, densities[node.featid].x)] += split_imp
+        Ipb[node.featid, bin(node.featval, densities[node.featid].x)] += max(0, split_imp)
         if typeof(node.left) != Leaf && sum(condition) > 0
             push!(queue, (node.left, inds[condition]))
         end
@@ -78,12 +78,13 @@ end
 
 # Compute R2 from OOB predictions
 function compute_r2(y, yhat)
-    return 1 - sum((y .- yhat) .^ 2) / (var(y) * length(yhat))
+    r2 = 1 - sum((y .- yhat) .^ 2) / (var(y) * length(yhat))
+    return max(0, r2)
 end
 # Compute the compositional turnover function
 function composite_turnover(x, f)
     F = cumul_integrate(x, f)
-    return extrapolate(interpolate(x, F, FiniteDifferenceMonotonicInterpolation()), Flat())
+    return extrapolate(interpolate(x, F, SteffenMonotonicInterpolation()), Flat())
 end
 
 function gradient_forest(Y, X; ntrees=500, nbins=2^7, mtry=ceil(size(X, 2) / 3),
@@ -174,18 +175,20 @@ function gradient_forest(Y, X; ntrees=500, nbins=2^7, mtry=ceil(size(X, 2) / 3),
             for s in 1:nbins
                 normalizingfactor += Ifpb[f, p, s]
             end
-            for s in 1:nbins
-                fps[p, s] += R2pf[p, f] * Ifpb[f, p, s] / normalizingfactor
+            if normalizingfactor>0
+                for s in 1:nbins
+                    fps[p, s] += R2pf[p, f] * Ifpb[f, p, s] / normalizingfactor
+                end    
             end
         end
         fps[p, :] ./= L * step(densities[p].x)
     end
+    
     # For testing purposes
     #@assert NumericalIntegration.integrate(densities[1].x, fps[1,:]) ≈ R2p[1]
     # Now we have to compute the composite cumulative importance
     F = [composite_turnover(densities[p].x, fps[p, :]) for p in 1:P]
-    #@assert F[1](-Inf) ≈ 0
-    #@assert F[1](+Inf) ≈ R2p[1]
+    # @assert F[1](Inf) ≈ R2p[1] 
     return (R2p=R2p, F=F)
 end
 end
