@@ -84,7 +84,7 @@ function composite_turnover(x, f)
 end
 
 function gradient_forest(Y, X; ntrees=500, nbins=2^7, mtry=ceil(size(X, 2) / 3),
-                         npermiter=1)
+                         npermiter=1, rng::Random.AbstractRNG=Random.GLOBAL_RNG)
     N, P = size(X)
     _, L = size(Y)
     # goodness-of-fit measure for the forest for allele f
@@ -103,7 +103,6 @@ function gradient_forest(Y, X; ntrees=500, nbins=2^7, mtry=ceil(size(X, 2) / 3),
 
     # Compute the density of each predictor
     densities = predictors_density(X, nbins)
-    rng = Random.GLOBAL_RNG
     shared_seed = rand(rng, UInt)
     for f in 1:L
         y = view(Y, :, f)

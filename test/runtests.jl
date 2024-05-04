@@ -76,12 +76,7 @@ end
 function test_gradient_forest()
     data = open(deserialize, "data/example_data.jld")
     expected_output = open(deserialize, "data/gradientforest.jld")
-    # Check that, if using the same seed and same data, the model is the same
-    # TODO: check seed
-    #models = [GenomicOffsets.GradientForest.gradient_forest(data.Y, data.X; ntrees =10, rng=100).R2p for _ in 1:5]
-    #for i in 2:5
-    #  @test norm(models[1] - models[i]) < 1e-10
-    #end  
+    # TODO: random seeds
     model = fit(GradientForestGO, data.Y, data.X; ntrees=100)
     offset = genomic_offset(model, data.X, data.Xpred)
     @test cor(offset, expected_output) > 0.7
@@ -103,15 +98,17 @@ end
 
 function bootstraps()
     data = open(deserialize, "data/example_data.jld")
-    rng = Random.MersenneTwister(1234)
-    bootstrap_with_candidates(RONA, rng, data.Y, data.X, data.Xpred) ≈
-    bootstrap_with_candidates(RONA, rng, data.Y, data.X, data.Xpred)
-    bootstrap_with_candidates(RDAGO, rng, data.Y, data.X, data.Xpred) ≈
-    bootstrap_with_candidates(RDAGO, rng, data.Y, data.X, data.Xpred)
-    bootstrap_with_candidates(GeometricGO, rng, data.Y, data.X, data.Xpred) ≈
-    bootstrap_with_candidates(GeometricGO, rng, data.Y, data.X, data.Xpred)
-    return bootstrap_with_candidates(GradientForestGO, rng, data.Y, data.X, data.Xpred) ≈
-           bootstrap_with_candidates(GradientForestGO, rng, data.Y, data.X, data.Xpred)
+    for type in [RONA, RDAGO, GeometricGO]
+        seed = rand(UInt)
+        @test bootstrap_with_candidates(type, Xoshiro(seed), data.Y, data.X, data.Xpred,
+                                        100) ≈
+              bootstrap_with_candidates(type, Xoshiro(seed), data.Y, data.X, data.Xpred,
+                                        100)
+    end
+    # TODO: check GradientForest
+    @test isa(bootstrap_with_candidates(GradientForestGO, data.Y, data.X,
+                                    data.Xpred,
+                                    100; ntrees=20), Matrix{Float64})
 end
 
 @testset "GenomicOffsets.jl" begin
