@@ -55,9 +55,7 @@ using GenomicOffsets # hide
 Y, X, Xpred = data # hide
 using Random, StatsBase
 nboots = 100
-rng = Xoshiro(123) # random seed
-offsets = bootstrap_with_candidates(GeometricGO, rng, 
-    Y, X, Xpred, nboots;candidates_threshold=0.05)
+offsets = bootstrap_with_candidates(GeometricGO, Y, X, Xpred, nboots;candidates_threshold=0.05)
 @assert size(offsets) == (size(Y, 1), nboots) 
 confint95 = [quantile(ind, [0.025, 0.975]) for ind in eachrow(offsets)]
 ```

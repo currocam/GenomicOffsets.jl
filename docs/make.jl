@@ -7,3 +7,7 @@ makedocs(
     format = Documenter.HTML(),
     modules = [GenomicOffsets]
 )
+
+deploydocs(
+    repo = "github.com/currocam/GenomicOffsets.jl.git",
+)
