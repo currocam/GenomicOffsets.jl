@@ -1,6 +1,5 @@
 # This script relies on pre-existing libraries to make regression test
-using RCall, Serialization
-
+using RCall, Serialization, Distributions, Random
 R"""
 library(LEA)
 data("offset_example")
@@ -159,4 +158,21 @@ gradient_offset <- gf_fn(Y, X, Xpred)
 
 open("gradientforest.jld", "w") do io
     return serialize(io, gradient_offset)
+end
+
+function example_dataset(n, L)
+    X = randn(n, 2)
+    frequencies = rand(Uniform(0, 1), L)
+    Y = mapreduce(x -> rand(Binomial(2, x), n), hcat, frequencies)
+    target = sample(1:L, 50; replace=false)
+    target_frequencies = 1 ./ (1 .+ exp.(-X[:,1]))
+    for candidate in target
+        Y[:, candidate] = [rand(Binomial(2, x), 1)[1] for x in target_frequencies]
+    end
+    Xpred = X .+ randn(n, 2)
+    return Y, X, Xpred
+end
+
+open("data.jld", "w") do io
+    return serialize(io, example_dataset(100, 500))
 end
