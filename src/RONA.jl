@@ -71,21 +71,27 @@ function bootstrap_with_candidates(::Type{RONA}, rng::Random.AbstractRNG,
                                    genomic_control::Bool=true,
                                    tw_threshold::Real=0.001) where {T1<:Real,T2<:Real}
     _, L = size(Y)
-    model = GenomicOffsets.fit(RONA, Y, X)
-    Y = Y .- mean(Y; dims=1)
+    model = GenomicOffsets.fit(RONA, Y, X) # Fit entire model
+    # Center and scale data for LFMM
+    mx = mean(X; dims=1)
+    sdx = std(X; dims=1)
+    Xscaled = (X .- mx) ./ sdx
+    Yscaled = Y .- mean(Y; dims=1)
+    # Add intercept for RONA
     X = hcat(ones(size(X, 1)), X)
     Xpred = hcat(ones(size(Xpred, 1)), Xpred)
+    # Allocate memory & initialize seed
     offsets = zeros(size(Y, 1), nboot)
     shared_seed = rand(rng, UInt)
     Threads.@threads for i in 1:nboot
         _rng = Random.seed!(copy(rng), shared_seed + i)
         sampled = sample(_rng, 1:L, L; replace=true)
-        Yboot = Y[:, sampled]
-        eigenvalues = eigvals(Yboot * Yboot' / (size(Yboot, 1) - 1))
-        _, pvalues_latent = TracyWidom(eigenvalues)
-        K = max(findfirst(pvalues_latent .> tw_threshold) - 1, 1)
-        pvalues = LFMM_Ftest(RidgeLFMM(Yboot, X, K; center=false), Yboot, X;
-                             genomic_control=genomic_control, center=false)
+        Yboot = Yscaled[:, sampled]
+        # Fit LFMM for GEA
+        lfmm = fit(GeometricGO, Yboot, Xscaled; center=false, scale=false,
+                   tw_threshold=tw_threshold).model
+        pvalues = LFMM_Ftest(lfmm, Yboot, Xscaled; genomic_control=genomic_control,
+                             center=false)
         qvalues = adjust(pvalues, BenjaminiHochberg())
         candidates = findall(qvalues .< candidates_threshold)
         if length(candidates) > 0

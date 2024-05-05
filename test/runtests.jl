@@ -97,17 +97,25 @@ function test_Ftest()
 end
 
 function bootstraps()
-    data = open(deserialize, "data/example_data.jld")
+    data = open(deserialize, "data/data.jld")
+    neglogfitness = data[:neglogfitness]
+    Y = data[:Y]
+    X = data[:X]
+    Xpred = data[:Xpred]
     for type in [RONA, RDAGO, GeometricGO]
         rng = Random.default_rng()
-        @test bootstrap_with_candidates(type, copy(rng), data.Y, data.X, data.Xpred,
-                                        100) ≈
-              bootstrap_with_candidates(type, copy(rng), data.Y, data.X, data.Xpred,
+        boots = bootstrap_with_candidates(type, copy(rng), Y, X, Xpred,
+                                          100)
+        @test boots ≈
+              bootstrap_with_candidates(type, copy(rng), Y, X, Xpred,
                                         100)
+        @test median([cor(neglogfitness, col) for col in eachcol(boots)]) > 0.70
+        
     end
     # TODO: check GradientForest
-    boots = bootstrap_with_candidates(GradientForestGO, data.Y, data.X, data.Xpred, 100;
-                                      ntrees=20)
+    boots = bootstrap_with_candidates(GradientForestGO, Y, X, Xpred, 100;
+                                      ntrees=100)
+    @test median([cor(neglogfitness, col) for col in eachcol(boots)]) > 0.40
     @test size(boots) == (size(data.Xpred, 1), 100)
 end
 
