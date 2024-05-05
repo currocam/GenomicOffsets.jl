@@ -20,7 +20,8 @@ Fit the Gradient forest genomic offset model (that is, fit a Gradient Forest) us
 """
 function fit(::Type{GradientForestGO}, Y::AbstractMatrix{T1}, X::AbstractMatrix{T2};
              ntrees::Int=100) where {T1<:Real,T2<:Real}
-    gf = GenomicOffsets.GradientForest.gradient_forest(Y, X; ntrees=ntrees)
+    nbins = ceil(log2(size(Y, 1)/2))
+    gf = GenomicOffsets.GradientForest.gradient_forest(Y, X; ntrees=ntrees, nbins=nbins)
     return GradientForestGO(gf.F)
 end
 
