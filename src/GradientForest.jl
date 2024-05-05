@@ -78,12 +78,11 @@ end
 
 # Compute R2 from OOB predictions
 function compute_r2(y, yhat)
-    r2 = 1 - sum((y .- yhat) .^ 2) / (var(y) * length(yhat))
-    return max(0, r2)
+    1 - sum((y .- yhat) .^ 2) / (var(y) * length(yhat))
 end
 # Compute the compositional turnover function
 function composite_turnover(x, f)
-    F = cumul_integrate(x, f)
+    F = NumericalIntegration.cumul_integrate(x, f)
     return extrapolate(interpolate(x, F, SteffenMonotonicInterpolation()), Flat())
 end
 
@@ -159,7 +158,7 @@ function gradient_forest(Y, X; ntrees=500, nbins=2^7, mtry=ceil(size(X, 2) / 3),
             end
         end
         # Compute the partitionated goodness-of-fit measure
-        total = sum(Ipf[:, f]) + 1e-8
+        total = sum(Ipf[:, f])
         if total > 0
             R2pf[:, f] = R2f[f] .* Ipf[:, f] / total
         end
