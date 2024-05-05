@@ -110,13 +110,12 @@ function bootstraps()
               bootstrap_with_candidates(type, copy(rng), Y, X, Xpred,
                                         100)
         @test median([cor(neglogfitness, col) for col in eachcol(boots)]) > 0.70
-        
     end
     # TODO: check GradientForest
     boots = bootstrap_with_candidates(GradientForestGO, Y, X, Xpred, 100;
                                       ntrees=100)
     @test median([cor(neglogfitness, col) for col in eachcol(boots)]) > 0.40
-    @test size(boots) == (size(data.Xpred, 1), 100)
+    @test size(boots) == (size(Xpred, 1), 100)
 end
 
 @testset "GenomicOffsets.jl" begin
