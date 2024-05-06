@@ -1,5 +1,5 @@
 module GradientForest
-using Random, KernelDensity, StatsBase, DecisionTree, Interpolations, NumericalIntegration
+using Random, KernelDensity, StatsBase, DecisionTree, Interpolations
 
 # Density of predictors
 ##  Whitened Gaussian kernel with bandwidth given by Silverman’s rule-of-thumb p. 160
@@ -82,8 +82,22 @@ function compute_r2(y, yhat)
 end
 # Compute the compositional turnover function
 function composite_turnover(x, f)
-    F = NumericalIntegration.cumul_integrate(x, f)
+    F = cumul_integrate(x, f)
     return extrapolate(interpolate(x, F, SteffenMonotonicInterpolation()), Flat())
+end
+
+# From https://github.com/dextorious/NumericalIntegration.jl/blob/master/src/NumericalIntegration.jl
+function cumul_integrate(x::AbstractVector, y::AbstractVector)
+    # compute initial value
+    @inbounds init = (x[2] - x[1]) * (y[1] + y[2])
+    n = length(x)
+    retarr = Vector{typeof(init)}(undef, n)
+    retarr[1] = init
+    # for all other values
+    @inbounds @fastmath for i in 2:n # not sure if @simd can do anything here
+        retarr[i] = retarr[i - 1] + (x[i] - x[i - 1]) * (y[i] + y[i - 1])
+    end
+    return 1 // 2 * retarr
 end
 
 function gradient_forest(Y, X; ntrees=500, nbins=2^7, mtry=ceil(size(X, 2) / 3),
