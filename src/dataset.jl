@@ -2,5 +2,6 @@ using Serialization
 
 function dataset()
     project_path(parts...) = normpath(joinpath(@__DIR__, "..", parts...))
-    deserialize(project_path("test/data/data.jld"))
+    data_dict = deserialize(project_path("test/data/data.jld"))
+    return (data_dict[:Y], data_dict[:X], data_dict[:Xpred])
 end

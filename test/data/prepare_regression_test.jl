@@ -160,19 +160,51 @@ open("gradientforest.jld", "w") do io
     return serialize(io, gradient_offset)
 end
 
-function example_dataset(n, L)
-    X = randn(n, 2)
-    frequencies = rand(Uniform(0, 1), L)
-    Y = mapreduce(x -> rand(Binomial(2, x), n), hcat, frequencies)
-    target = sample(1:L, 50; replace=false)
-    target_frequencies = 1 ./ (1 .+ exp.(-X[:,1]))
-    for candidate in target
-        Y[:, candidate] = [rand(Binomial(2, x), 1)[1] for x in target_frequencies]
+R"""
+library(tidyverse)
+simulation <- read_rds("slim.Rds")
+set.seed(100)
+shifted_fitness <- simulation[["Future fitness"]]
+causal_loci <- c(simulation[["Index QTLs 1"]], simulation[["Index QTLs 2"]])
+Yslim <- simulation$Genotype
+X <- matrix(c(
+    simulation[["Current env 1"]], simulation[["Current env 2"]],
+    rnorm(100), rnorm(100)
+),ncol=4)
+Xstar <- matrix(c(
+    simulation[["Future env 1"]], simulation[["Future env 2"]],
+    rnorm(100), rnorm(100)
+    ),ncol=4)
+neglogfitness <- -log(shifted_fitness)
+slim_data <- list(
+    X=X, Xpred = Xstar,
+    neglogfitness=neglogfitness
+)
+"""
+
+@rget Yslim
+@rget causal_loci
+@rget slim_data
+
+function fix_loci(loci, removed)
+    new = Int[]
+    for locus in loci
+        if locus in removed
+            continue
+        end
+        push!(new, locus - count(x -> x < locus, removed))
     end
-    Xpred = X .+ randn(n, 2)
-    return Y, X, Xpred
+    return new
 end
 
+sds = vec(std(Yslim; dims=1))
+zero_var = findall(sds .== 0)
+causal_loci = fix_loci(causal_loci, zero_var)
+Yslim = Yslim[:, findall(sds .> 0)]
+
+slim_data[:Y] = Yslim
+slim_data[:causal_loci] = causal_loci
+
 open("data.jld", "w") do io
-    return serialize(io, example_dataset(100, 500))
+    return serialize(io, slim_data)
 end

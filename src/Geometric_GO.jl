@@ -143,26 +143,26 @@ function bootstrap_with_candidates(::Type{GeometricGO}, rng::Random.AbstractRNG,
                                    candidates_threshold::Real=0.05,
                                    genomic_control::Bool=true,
                                    tw_threshold::Real=0.001) where {T1<:Real,T2<:Real}
-    Y = Y .- mean(Y; dims=1)
-    mx = mean(X; dims=1)
-    X = X .- mx
-    Xpred = Xpred .- mx
-    sx = std(X; dims=1)
-    X = X ./ sx
-    Xpred = X ./ sx
     _, L = size(Y)
+    #Scale and center
+    mx = mean(X; dims=1)
+    sdx = std(X; dims=1)
+    X = (X .- mx) ./ sdx
+    Xpred = (Xpred .- mx) ./ sdx
+    Y = Y .- mean(Y; dims=1)
+    # Allocate memory & initialize seed
     offsets = zeros(size(Y, 1), nboot)
     shared_seed = rand(rng, UInt)
     Threads.@threads for i in 1:nboot
         _rng = Random.seed!(copy(rng), shared_seed + i)
-        Yboot = Y[:,sample(_rng, 1:L, L; replace=true)]
-        eigenvalues = eigvals(Yboot * Yboot' / (size(Yboot, 1) - 1))
-        _, pvalues = TracyWidom(eigenvalues)
-        K = max(findfirst(pvalues .> tw_threshold) - 1, 1)
-        model = GenomicOffsets.fit(GeometricGO, Yboot, X, K; center=false, scale=false)
-        pvalues = LFMM_Ftest(model.model, Yboot, X; genomic_control=genomic_control,
-                             center=false)
-        qvalues = MultipleTesting.adjust(pvalues, BenjaminiHochberg())
+        sampled = sample(_rng, 1:L, L; replace=true)
+        Yboot = Y[:, sampled]
+        # Fit LFMM for GEA
+        model = fit(GeometricGO, Yboot, X; center=false, scale=false,
+                    tw_threshold=tw_threshold)
+        lfmm = model.model
+        pvalues = LFMM_Ftest(lfmm, Yboot, X; genomic_control=genomic_control, center=false)
+        qvalues = adjust(pvalues, BenjaminiHochberg())
         candidates = findall(qvalues .< candidates_threshold)
         offsets[:, i] = genomic_offset(model, X, Xpred, candidates)
     end

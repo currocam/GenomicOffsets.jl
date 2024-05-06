@@ -75,18 +75,24 @@ function bootstrap_with_candidates(::Type{RDAGO}, rng::Random.AbstractRNG,
                                    candidates_threshold::Real=0.05,
                                    genomic_control::Bool=true,
                                    tw_threshold::Real=0.001) where {T1<:Real,T2<:Real}
-    Y = Y .- mean(Y; dims=1)
     _, L = size(Y)
+    # Center and scale data for LFMM
+    mx = mean(X; dims=1)
+    sdx = std(X; dims=1)
+    Xscaled = (X .- mx) ./ sdx
+    Yscaled = Y .- mean(Y; dims=1)
+    # Allocate memory & initialize seed
     offsets = zeros(size(Y, 1), nboot)
     shared_seed = rand(rng, UInt)
     Threads.@threads for i in 1:nboot
         _rng = Random.seed!(copy(rng), shared_seed + i)
-        Yboot = Y[:, sample(_rng, 1:L, L; replace=true)]
-        eigenvalues = eigvals(Yboot * Yboot' / (size(Yboot, 1) - 1))
-        _, pvalues = TracyWidom(eigenvalues)
-        K = max(findfirst(pvalues .> tw_threshold) - 1, 1)
-        pvalues = LFMM_Ftest(RidgeLFMM(Yboot, X, K; center=false), Yboot, X;
-                             genomic_control=genomic_control, center=false)
+        sampled = sample(_rng, 1:L, L; replace=true)
+        Yboot = Yscaled[:, sampled]
+        # Fit LFMM for GEA
+        lfmm = fit(GeometricGO, Yboot, Xscaled; center=false, scale=false,
+                   tw_threshold=tw_threshold).model
+        pvalues = LFMM_Ftest(lfmm, Yboot, Xscaled; genomic_control=genomic_control,
+                             center=false)
         qvalues = adjust(pvalues, BenjaminiHochberg())
         candidates = findall(qvalues .< candidates_threshold)
         if length(candidates) > 0
@@ -96,6 +102,7 @@ function bootstrap_with_candidates(::Type{RDAGO}, rng::Random.AbstractRNG,
     end
     return offsets
 end
+
 function bootstrap_with_candidates(::Type{RDAGO}, Y::AbstractMatrix{T1},
                                    X::AbstractMatrix{T2}, Xpred::AbstractMatrix{T2},
                                    nboot::Int=500; candidates_threshold::Real=0.05,

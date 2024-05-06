@@ -24,7 +24,7 @@ function permutation_importance!(importances, y, X, tree, K=30,
             importances[p] += mean((y .- apply_tree(tree, X)) .^ 2) - baseline
         end
         X[:, p] = original
-        importances[p] = max(0, importances[p]/K)
+        importances[p] = max(0, importances[p] / K)
     end
 end
 
@@ -78,12 +78,11 @@ end
 
 # Compute R2 from OOB predictions
 function compute_r2(y, yhat)
-    r2 = 1 - sum((y .- yhat) .^ 2) / (var(y) * length(yhat))
-    return max(0, r2)
+    return 1 - sum((y .- yhat) .^ 2) / (var(y) * length(yhat))
 end
 # Compute the compositional turnover function
 function composite_turnover(x, f)
-    F = cumul_integrate(x, f)
+    F = NumericalIntegration.cumul_integrate(x, f)
     return extrapolate(interpolate(x, F, SteffenMonotonicInterpolation()), Flat())
 end
 
@@ -159,7 +158,7 @@ function gradient_forest(Y, X; ntrees=500, nbins=2^7, mtry=ceil(size(X, 2) / 3),
             end
         end
         # Compute the partitionated goodness-of-fit measure
-        total = sum(Ipf[:, f]) + 1e-8
+        total = sum(Ipf[:, f])
         if total > 0
             R2pf[:, f] = R2f[f] .* Ipf[:, f] / total
         end
@@ -175,15 +174,15 @@ function gradient_forest(Y, X; ntrees=500, nbins=2^7, mtry=ceil(size(X, 2) / 3),
             for s in 1:nbins
                 normalizingfactor += Ifpb[f, p, s]
             end
-            if normalizingfactor>0
+            if normalizingfactor > 0
                 for s in 1:nbins
                     fps[p, s] += R2pf[p, f] * Ifpb[f, p, s] / normalizingfactor
-                end    
+                end
             end
         end
         fps[p, :] ./= L * step(densities[p].x)
     end
-    
+
     # For testing purposes
     #@assert NumericalIntegration.integrate(densities[1].x, fps[1,:]) ≈ R2p[1]
     # Now we have to compute the composite cumulative importance
