@@ -1,7 +1,7 @@
 name = "GenomicOffsets"
 uuid = "496adb70-ccd1-4bf3-8d93-537a078619e1"
-version = "0.0.1"
 authors = ["Curro Campuzano Jiménez"]
+version = "0.0.2"
 
 [deps]
 DecisionTree = "7806a523-6efd-50cb-b5f6-3fa6f1930dbb"

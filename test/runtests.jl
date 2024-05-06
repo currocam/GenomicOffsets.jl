@@ -94,6 +94,18 @@ function test_Ftest()
     @test norm(expected_outputs[:lfmm2_k25][:pvalues] .-
                GenomicOffsets.LFMM_Ftest(RidgeLFMM(data.Y, data.X, 25), data.Y, data.X)) <
           1e-10
+    @test norm(expected_outputs[:lfmm2_k2][:pvalues] .-
+               GenomicOffsets.LFMM_Ftest(fit(GeometricGO, data.Y, data.X, 2), data.Y,
+                                         data.X)) <
+          1e-4
+    @test norm(expected_outputs[:lfmm2_k3][:pvalues] .-
+               GenomicOffsets.LFMM_Ftest(fit(GeometricGO, data.Y, data.X, 3), data.Y,
+                                         data.X)) <
+          1e-4
+    @test norm(expected_outputs[:lfmm2_k25][:pvalues] .-
+               GenomicOffsets.LFMM_Ftest(fit(GeometricGO, data.Y, data.X, 25), data.Y,
+                                         data.X)) <
+          1e-4
 end
 
 function bootstraps()
