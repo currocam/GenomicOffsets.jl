@@ -19,6 +19,8 @@ function test_rda()
     model = fit(RDAGO, data.Y, data.X)
     rda = genomic_offset(model, data.X, data.Xpred)
     @test norm(rda - expected_output) < 1e-10
+    _ = genomic_offset(model, data.X, data.Xpred; weighted=true)
+    return nothing
 end
 
 function test_tracy_widom()
@@ -50,7 +52,8 @@ function test_lfmm2()
     end
     check_lfmm(expected_outputs[:lfmm2_k2], RidgeLFMM(Y, X, 2))
     check_lfmm(expected_outputs[:lfmm2_k3], RidgeLFMM(Y, X, 3))
-    return check_lfmm(expected_outputs[:lfmm2_k25], RidgeLFMM(Y, X, 25))
+    check_lfmm(expected_outputs[:lfmm2_k25], RidgeLFMM(Y, X, 25))
+    return nothing
 end
 
 function test_geometric()
@@ -69,8 +72,9 @@ function test_geometric()
     genomic_offset(fit(GeometricGO, data.Y, data.X, 2; tw_threshold=0.1), data.X,
                    data.Xpred)
     genomic_offset(fit(GeometricGO, data.Y, data.X; tw_threshold=0.1), data.X, data.Xpred)
-    return genomic_offset(fit(GeometricGO, data.Y, data.X; tw_threshold=0.005), data.X,
-                          data.Xpred)
+    genomic_offset(fit(GeometricGO, data.Y, data.X; tw_threshold=0.005), data.X,
+                   data.Xpred)
+    return nothing
 end
 
 function test_gradient_forest()
