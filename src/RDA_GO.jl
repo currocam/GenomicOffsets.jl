@@ -1,11 +1,13 @@
 using LinearAlgebra
 using StatsBase
+using MultivariateStats
 
 """
 Redundancy Analysis (RDA) genomic offset. TODO: Add reference
 """
 struct RDAGO{T<:Real} <: AbstractGO
-    W::Matrix{T}
+    B::Matrix{T}
+    PCA::PCA{T}
 end
 
 """
@@ -20,14 +22,13 @@ Fit the RDA model (that is, apply Redundancy Analysis) using the data `Y` and `X
   - A RDAGO model.
 """
 function fit(::Type{RDAGO}, Y::AbstractMatrix{T1},
-             X::AbstractMatrix{T2}) where {T1<:Real,T2<:Real}
+             X::AbstractMatrix{T2}, ) where {T1<:Real,T2<:Real}
     X = hcat(ones(size(X, 1)), X)
     # Fit linear model
     B = X \ Y
     # Project predicted frequencies
-    loadings = eigen(cov(X * B)).vectors
-    W = B * loadings
-    return RDAGO(W)
+    M = MultivariateStats.fit(PCA, (X * B)')
+    return RDAGO(B, M)
 end
 
 """
@@ -45,9 +46,9 @@ Compute the RDA genomic offset.
 """
 function genomic_offset(model::RDAGO, X::AbstractMatrix{T},
                         Xpred::AbstractMatrix{T}) where {T<:Real}
-    projX = hcat(ones(size(X, 1)), X) * model.W
-    projXpred = hcat(ones(size(Xpred, 1)), Xpred) * model.W
-    return sum((projX - projXpred) .^ 2; dims=2) / size(model.W, 2)
+    projX = predict(model.PCA, (hcat(ones(size(X, 1)), X) * model.B)')'
+    projXpred = predict(model.PCA, (hcat(ones(size(Xpred, 1)), Xpred) * model.B)')'
+    return sum((projX - projXpred) .^ 2; dims=2) / size(model.B, 2)
 end
 
 """
