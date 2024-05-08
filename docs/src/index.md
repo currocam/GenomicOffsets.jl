@@ -1,54 +1,36 @@
 # GenomicOffsets.jl Documentation
 
-The GenomicOffsets Julia package implements efficient versions of some of the most popular Genomic offset metrics.
+Genomic offsets (GO) statistics measure current individuals/populations' maladaptation in the event of a drastic climate change. These metrics are obtained from Genotype environment associations (GEA). 
 
-Disclaimer: this documentation is not finished and just provides a quick overview of the syntax. 
+This Julia package provides efficient implementations of the four most popular metrics: [RONA]( https://doi.org/10.1111/mec.13889), [RDA GO](https://doi.org/10.1111/2041-210X.13722), [Gradient Forest GO](https://doi.org/10.1111/ele.12376) and [Geometric GO](https://doi.org/10.1093/molbev/msad140). In addition, we have implemented an F-statistical test based on the [Linear](https://doi.org/10.1093/molbev/msz008)[ Mixed Latent](https://doi.org/10.1093/molbev/msz008) Factor model](https://doi.org/10.1093/molbev/msz008) (LFMM) to perform the identification of GEA candidates through hypothesis testing and a bootstrap approach that resamples loci, performs the GEA candidates identification and computes the desired genomic offset metric. 
 
-## Getting started
+We have documented several "recipes" in both Julia and R in the [README file of the repository](https://github.com/currocam/GenomicOffsets.jl) (so please take a look there and use this documentation as a reference for all available functions).
 
-The package provides a miminal dataset you can use. You can load it as follos. 
+## TL;TR
+
+You can compute different genomic offsets by fitting different models and computing the genomic offset.
 
 ```@example
+# Julia
 using GenomicOffsets
-Y, X, Xpred = godataset; 
-```
-
-On the one hand, `Y` is the genotype matrix (or allele frequencies) of the current locally adapted individuals (or populations). We have 100 individuals and 500 loci. 
-
-```@example
-using GenomicOffsets # hide
-Y, X, Xpred = godataset; # hide
-size(Y)
-```
-
-On the other hand, `X` is the current environmental matrix. We have 100 individuals and 2 ecological predictors.  `Xpred` are the same individuals (although this is not mandatory) for which we have a forecasted ecological predictors.  
-
-```@example
-using GenomicOffsets # hide
-Y, X, Xpred = godataset; # hide
-@assert size(X) == size(Xpred)
-size(X)
-```
-
-We can compute the RONA (and the rest of supported methods) by first, fitting the model and then computing the predicted genomic offset. 
-
-```@example
-using GenomicOffsets # hide
-Y, X, Xpred = godataset # hide
+Y, X, Xpred = godataset
 rona = fit(RONA, Y, X)
 genomic_offset(rona, X, Xpred)
 ```
 
-Other genomic offset metrics have additional parameters. For example, if computing the geometric genomic offset, you may want to provide the number of latent factors of the LFMM model (and not use the Tracy-Widom test to determined it). 
+You can fit LFMM models to do hypothesis testing and identify GEA candidates. 
 
 ```@example
+# Julia
 using GenomicOffsets # hide
 Y, X, Xpred = godataset # hide
-geometric = fit(GeometricGO, Y, X, 3)
-genomic_offset(geometric, X, Xpred)
+lfmm = RidgeLFMM(Y, X, 1)
+pvalues = LFMM_Ftest(lfmm, Y, X; genomic_control=true)
+# Bonferroni correction at 0.05
+candidates = findall(pvalues .< 0.05 / size(Y, 2))
 ```
 
-To see a more complicated use case, let's compute the 95% confidence niterval using  bootstrapping. We do it by computing the geometric genomic offset repeatly with different loci sampled with replacement. At every iteration, (a) the number of latent factors will be determined using the TracyWidom test, (b) a set of putatively adaptative loci will be identified with an F-test (corrected using genomic control) based on the LFMM model and (c) the geometric genomic offste is computed.  
+Yo can compute bootstrapping confidence intervals for different genomic offset metrics using an approach we propose that sample *loci* and identifies GEA candidates at each iteration: 
 
 ```@example
 using GenomicOffsets # hide
@@ -64,5 +46,5 @@ confint95 = [quantile(ind, [0.025, 0.975]) for ind in eachrow(offsets)]
 
 ```@autodocs
 Modules = [GenomicOffsets]
-Order   = [:function, :type]
+Order   = [:type,:function]
 ```
