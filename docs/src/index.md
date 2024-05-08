@@ -10,14 +10,14 @@ The package provides a miminal dataset you can use. You can load it as follos.
 
 ```@example
 using GenomicOffsets
-Y, X, Xpred = data; 
+Y, X, Xpred = godataset; 
 ```
 
 On the one hand, `Y` is the genotype matrix (or allele frequencies) of the current locally adapted individuals (or populations). We have 100 individuals and 500 loci. 
 
 ```@example
 using GenomicOffsets # hide
-Y, X, Xpred = data; # hide
+Y, X, Xpred = godataset; # hide
 size(Y)
 ```
 
@@ -25,7 +25,7 @@ On the other hand, `X` is the current environmental matrix. We have 100 individu
 
 ```@example
 using GenomicOffsets # hide
-Y, X, Xpred = data; # hide
+Y, X, Xpred = godataset; # hide
 @assert size(X) == size(Xpred)
 size(X)
 ```
@@ -34,7 +34,7 @@ We can compute the RONA (and the rest of supported methods) by first, fitting th
 
 ```@example
 using GenomicOffsets # hide
-Y, X, Xpred = data # hide
+Y, X, Xpred = godataset # hide
 rona = fit(RONA, Y, X)
 genomic_offset(rona, X, Xpred)
 ```
@@ -43,7 +43,7 @@ Other genomic offset metrics have additional parameters. For example, if computi
 
 ```@example
 using GenomicOffsets # hide
-Y, X, Xpred = data # hide
+Y, X, Xpred = godataset # hide
 geometric = fit(GeometricGO, Y, X, 3)
 genomic_offset(geometric, X, Xpred)
 ```
@@ -52,7 +52,7 @@ To see a more complicated use case, let's compute the 95% confidence niterval us
 
 ```@example
 using GenomicOffsets # hide
-Y, X, Xpred = data # hide
+Y, X, Xpred = godataset # hide
 using Random, StatsBase
 nboots = 100
 offsets = bootstrap_with_candidates(GeometricGO, Y, X, Xpred, nboots;candidates_threshold=0.05)
