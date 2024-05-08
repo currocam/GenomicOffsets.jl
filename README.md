@@ -248,3 +248,7 @@ Sys.setenv(JULIA_NUM_THREADS = 6)
 
 #### And what more?
 This README doesn't cover all details nor all optional arguments. You can read the docstrings in Julia by entering the help mode with the `?` operator. Sadly, this is not possible from R. Instead, you should take a look at the list of functions on the [documentation website](https://currocam.github.io/GenomicOffsets.jl/dev/). Please, notice that in Julia is common to overload the same functions for different *signatures*, so look for the signature you need carefully.
+
+#### Known issues
+
+Right now, setting a seed when using Gradient Forest does not ensure reproducibility (and I don't know if it is an issue with how we generate random numbers across threads or just floating point errors). 
