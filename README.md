@@ -36,7 +36,7 @@ Now, you can install the Julia package and load it into R (so you can use the fu
 ```R
 library(JuliaConnectoR)
 stopifnot(juliaSetupOk())
-juliaEval('using Pkg; Pkg.add("https://github.com/currocam/GenomicOffsets.jl"))')
+juliaEval('using Pkg; Pkg.add(url="https://github.com/currocam/GenomicOffsets.jl")')
 GO <- juliaImport("GenomicOffsets")
 ```
 ## Recipes (Julia and R)
