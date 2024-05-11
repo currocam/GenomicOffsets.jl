@@ -189,9 +189,7 @@ In R:
 ```R
 # R
 with(GO, {
-    #Using 5 latent factors
     model <- fit(GradientForestGO, Y[,candidates], X)
-    # By default using tw_threshold=1e-3
     model <- fit(GradientForestGO,  Y[,candidates], X, ntrees=500L)
     genomic_offset(model, X, Xpred)
 })
