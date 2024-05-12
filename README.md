@@ -11,7 +11,7 @@ This Julia package provides efficient implementations of the four most popular m
 You can install the development package version from the REPL by entering the package mode (press `]`) and executing
 
 ```julia
-pkg> add https://github.com/currocam/GenomicOffsets.jl
+pkg> add GenomicOffsets
 ```
 Then, you can load the package by running
 ```julia
@@ -36,7 +36,7 @@ Now, you can install the Julia package and load it into R (so you can use the fu
 ```R
 library(JuliaConnectoR)
 stopifnot(juliaSetupOk())
-juliaEval('using Pkg; Pkg.add(url="https://github.com/currocam/GenomicOffsets.jl")')
+juliaEval('import Pkg; Pkg.add("GenomicOffsets")')
 GO <- juliaImport("GenomicOffsets")
 ```
 ## Recipes (Julia and R)
