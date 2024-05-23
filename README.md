@@ -4,14 +4,14 @@
 
 Genomic offsets (GO) statistics measure current individuals/populations' maladaptation in the event of a drastic climate change. These metrics are obtained from Genotype environment associations (GEA). 
 
-This Julia package provides efficient implementations of the four most popular metrics: [RONA]( https://doi.org/10.1111/mec.13889), [RDA GO](https://doi.org/10.1111/2041-210X.13722), [Gradient Forest GO](https://doi.org/10.1111/ele.12376) and [Geometric GO](https://doi.org/10.1093/molbev/msad140). In addition, we have implemented an F-statistical test based on the [Linear](https://doi.org/10.1093/molbev/msz008)[ Mixed Latent](https://doi.org/10.1093/molbev/msz008) Factor model](https://doi.org/10.1093/molbev/msz008) (LFMM) to perform the identification of GEA candidates through hypothesis testing and a bootstrap approach that resamples loci, performs the GEA candidates identification and computes the desired genomic offset metric. 
+This Julia package provides efficient implementations of the four most popular metrics: [RONA]( https://doi.org/10.1111/mec.13889), [RDA GO](https://doi.org/10.1111/2041-210X.13722), [Gradient Forest GO](https://doi.org/10.1111/ele.12376) and [Geometric GO](https://doi.org/10.1093/molbev/msad140). In addition, we have implemented an F-statistical test based on the [Latent Factor Mixed linear Model](https://doi.org/10.1093/molbev/msz008) (LFMM) to perform the identification of GEA candidates through hypothesis testing and a bootstrap approach that resamples loci, performs the GEA candidates identification and computes the desired genomic offset metric. 
 
 ## Getting started (Julia users)
 
 You can install the development package version from the REPL by entering the package mode (press `]`) and executing
 
 ```julia
-pkg> add https://github.com/currocam/GenomicOffsets.jl
+pkg> add GenomicOffsets
 ```
 Then, you can load the package by running
 ```julia
@@ -36,7 +36,7 @@ Now, you can install the Julia package and load it into R (so you can use the fu
 ```R
 library(JuliaConnectoR)
 stopifnot(juliaSetupOk())
-juliaEval('using Pkg; Pkg.add("https://github.com/currocam/GenomicOffsets.jl"))')
+juliaEval('import Pkg; Pkg.add("GenomicOffsets")')
 GO <- juliaImport("GenomicOffsets")
 ```
 ## Recipes (Julia and R)
@@ -189,9 +189,6 @@ In R:
 ```R
 # R
 with(GO, {
-    #Using 5 latent factors
-    model <- fit(GradientForestGO, Y[,candidates], X)
-    # By default using tw_threshold=1e-3
     model <- fit(GradientForestGO,  Y[,candidates], X, ntrees=500L)
     genomic_offset(model, X, Xpred)
 })
