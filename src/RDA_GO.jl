@@ -78,6 +78,7 @@ Compute the RDA genomic offset using a bootstrap approach. For every, bootstrap 
   - `tw_threshold::Real=0.001`: Threshold for the Tracy-Widom test. Better to be conservative (as the number of latent factors is often overconservative).
   - `pratio::Float64=0.99`: The ratio of variances preserved in the principal subspace.
   - `weighted::Bool=false`: If true, the euclidean distance in the projected space is weighted based on the eigenvalue of each axis.
+  - λ::Real=1e-5: Regularization parameter for the LFMM.
 
 # Returns
   - A matrix of size NxNboot with the genomic offset values. If no candidate loci are found, the row is filled with zeros.
@@ -89,7 +90,8 @@ function bootstrap_with_candidates(::Type{RDAGO}, rng::Random.AbstractRNG,
                                    genomic_control::Bool=true,
                                    tw_threshold::Real=0.001,
                                    pratio::Float64=0.99,
-                                   weighted::Bool=false) where {T1<:Real,T2<:Real}
+                                   weighted::Bool=false,
+                                   λ::Real=1e-5) where {T1<:Real,T2<:Real}
     _, L = size(Y)
     # Center and scale data for LFMM
     mx = mean(X; dims=1)
@@ -105,7 +107,7 @@ function bootstrap_with_candidates(::Type{RDAGO}, rng::Random.AbstractRNG,
         Yboot = Yscaled[:, sampled]
         # Fit LFMM for GEA
         lfmm = fit(GeometricGO, Yboot, Xscaled; center=false, scale=false,
-                   tw_threshold=tw_threshold).model
+                   tw_threshold=tw_threshold, λ=λ).model
         pvalues = LFMM_Ftest(lfmm, Yboot, Xscaled; genomic_control=genomic_control,
                              center=false)
         qvalues = adjust(pvalues, BenjaminiHochberg())
@@ -122,9 +124,11 @@ function bootstrap_with_candidates(::Type{RDAGO}, Y::AbstractMatrix{T1},
                                    X::AbstractMatrix{T2}, Xpred::AbstractMatrix{T2},
                                    nboot::Int=500; candidates_threshold::Real=0.05,
                                    genomic_control::Bool=true,
-                                   tw_threshold::Real=0.001) where {T1<:Real,T2<:Real}
+                                   tw_threshold::Real=0.001,
+                                   λ::Real=1e-5) where {T1<:Real,T2<:Real}
     return bootstrap_with_candidates(RDAGO, Random.GLOBAL_RNG, Y, X, Xpred, nboot;
                                      candidates_threshold=candidates_threshold,
                                      genomic_control=genomic_control,
-                                     tw_threshold=tw_threshold)
+                                     tw_threshold=tw_threshold,
+                                     λ=λ)
 end

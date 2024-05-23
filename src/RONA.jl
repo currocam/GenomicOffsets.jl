@@ -59,6 +59,7 @@ Compute the genomic offset for the RONA model using a bootstrap approach. For ev
   - `candidates_threshold::Real=0.05`: Threshold for the F-test. Better to be permisive.
   - `genomic_control::Bool=true`: Apply genomic control to the F-test.
   - `tw_threshold::Real=0.001`: Threshold for the Tracy-Widom test. Better to be conservative (as the number of latent factors is often overconservative).
+  - λ::Real=1e-5: Regularization parameter for the LFMM.
 
 
 # Returns
@@ -69,7 +70,8 @@ function bootstrap_with_candidates(::Type{RONA}, rng::Random.AbstractRNG,
                                    Xpred::AbstractMatrix{T2}, nboot::Int=500;
                                    candidates_threshold::Real=0.05,
                                    genomic_control::Bool=true,
-                                   tw_threshold::Real=0.001) where {T1<:Real,T2<:Real}
+                                   tw_threshold::Real=0.001,
+                                   λ::Real=1e-5) where {T1<:Real,T2<:Real}
     _, L = size(Y)
     model = GenomicOffsets.fit(RONA, Y, X) # Fit entire model
     # Center and scale data for LFMM
@@ -89,7 +91,7 @@ function bootstrap_with_candidates(::Type{RONA}, rng::Random.AbstractRNG,
         Yboot = Yscaled[:, sampled]
         # Fit LFMM for GEA
         lfmm = fit(GeometricGO, Yboot, Xscaled; center=false, scale=false,
-                   tw_threshold=tw_threshold).model
+                   tw_threshold=tw_threshold, λ=λ).model
         pvalues = LFMM_Ftest(lfmm, Yboot, Xscaled; genomic_control=genomic_control,
                              center=false)
         qvalues = adjust(pvalues, BenjaminiHochberg())
@@ -106,9 +108,11 @@ function bootstrap_with_candidates(::Type{RONA}, Y::AbstractMatrix{T1},
                                    X::AbstractMatrix{T2}, Xpred::AbstractMatrix{T2},
                                    nboot::Int=500; candidates_threshold::Real=0.05,
                                    genomic_control::Bool=true,
-                                   tw_threshold::Real=0.001) where {T1<:Real,T2<:Real}
+                                   tw_threshold::Real=0.001,
+                                   λ::Real=1e-5) where {T1<:Real,T2<:Real}
     return bootstrap_with_candidates(RONA, Random.GLOBAL_RNG, Y, X, Xpred, nboot;
                                      candidates_threshold=candidates_threshold,
                                      genomic_control=genomic_control,
-                                     tw_threshold=tw_threshold)
+                                     tw_threshold=tw_threshold,
+                                     λ=λ)
 end
