@@ -110,11 +110,11 @@ function bootstrap_with_candidates(::Type{GradientForestGO}, Y::AbstractMatrix{T
                                    nboot::Int=500; ntrees::Int=100,
                                    candidates_threshold::Real=0.05,
                                    genomic_control::Bool=true,
-                                   tw_threshold::Real=0.001) where {T1<:Real,T2<:Real}
+                                   tw_threshold::Real=0.001, λ::Real=1e-5) where {T1<:Real,T2<:Real}
     return bootstrap_with_candidates(GradientForestGO, Random.GLOBAL_RNG, Y, X, Xpred,
                                      nboot; ntrees=ntrees,
                                      candidates_threshold=candidates_threshold,
                                      genomic_control=genomic_control,
                                      tw_threshold=tw_threshold,
-                                     λ=1e-5)
+                                     λ=λ)
 end
