@@ -64,6 +64,7 @@ Compute the Gradient Forest genomic offset using a bootstrap approach. For every
   - `candidates_threshold::Real=0.05`: Threshold for the F-test. Better to be permisive.
   - `genomic_control::Bool=true`: Apply genomic control to the F-test.
   - `tw_threshold::Real=0.001`: Threshold for the Tracy-Widom test. Better to be conservative (as the number of latent factors is often overconservative).
+  - λ::Real=1e-5: Regularization parameter for the LFMM.
 
 # Returns
   - A matrix of size NxNboot with the genomic offset values. If no candidate loci are found, the row is filled with zeros.
@@ -73,7 +74,8 @@ function bootstrap_with_candidates(::Type{GradientForestGO}, rng::Random.Abstrac
                                    Xpred::AbstractMatrix{T2}, nboot::Int=500;
                                    ntrees::Int=100, candidates_threshold::Real=0.05,
                                    genomic_control::Bool=true,
-                                   tw_threshold::Real=0.001) where {T1<:Real,T2<:Real}
+                                   tw_threshold::Real=0.001,
+                                   λ::Real=1e-5) where {T1<:Real,T2<:Real}
     _, L = size(Y)
     # Center and scale data for LFMM
     mx = mean(X; dims=1)
@@ -90,7 +92,7 @@ function bootstrap_with_candidates(::Type{GradientForestGO}, rng::Random.Abstrac
         Yboot = Y[:, sampled]
         # Fit LFMM for GEA
         lfmm = fit(GeometricGO, Ybootscaled, Xscaled; center=false, scale=false,
-                   tw_threshold=tw_threshold).model
+                   tw_threshold=tw_threshold, λ=λ).model
         pvalues = LFMM_Ftest(lfmm, Ybootscaled, Xscaled; genomic_control=genomic_control,
                              center=false)
         qvalues = adjust(pvalues, BenjaminiHochberg())
@@ -113,5 +115,6 @@ function bootstrap_with_candidates(::Type{GradientForestGO}, Y::AbstractMatrix{T
                                      nboot; ntrees=ntrees,
                                      candidates_threshold=candidates_threshold,
                                      genomic_control=genomic_control,
-                                     tw_threshold=tw_threshold)
+                                     tw_threshold=tw_threshold,
+                                     λ=1e-5)
 end

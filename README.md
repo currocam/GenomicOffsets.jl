@@ -189,7 +189,6 @@ In R:
 ```R
 # R
 with(GO, {
-    model <- fit(GradientForestGO, Y[,candidates], X)
     model <- fit(GradientForestGO,  Y[,candidates], X, ntrees=500L)
     genomic_offset(model, X, Xpred)
 })
