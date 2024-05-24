@@ -116,5 +116,5 @@ function bootstrap_with_candidates(::Type{GradientForestGO}, Y::AbstractMatrix{T
                                      candidates_threshold=candidates_threshold,
                                      genomic_control=genomic_control,
                                      tw_threshold=tw_threshold,
-                                     λ::Real=1e-5)
+                                     λ=1e-5)
 end
