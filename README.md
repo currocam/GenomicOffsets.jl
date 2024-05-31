@@ -28,17 +28,30 @@ curl -fsSL https://install.julialang.org | sh
 # Now, Julia should be in the system search PATH
 julia -v
 ```
+Or, if you prefer using [conda](https://anaconda.org/conda-forge/julia):
+
+```bash
+conda install -c conda-forge julia
+# Now, Julia should be in the system search PATH
+julia -v
+```
+
+
 The second step is to install the [JuliaConnectoR](https://github.com/stefan-m-lenz/JuliaConnectoR) package. You can do it from the R console by running:
 ```R
 install.packages("JuliaConnectoR")
 ```
-Now, you can install the Julia package and load it into R (so you can use the functions) as:
+Now, you can install the Julia package (this only needs to be done once):
 ```R
 library(JuliaConnectoR)
 stopifnot(juliaSetupOk())
 juliaEval('import Pkg; Pkg.add("GenomicOffsets")')
+```
+Finally, you have to load it into R (so you can use the functions) as
+```R
 GO <- juliaImport("GenomicOffsets")
 ```
+
 ## Recipes (Julia and R)
 ### Loading data
 To fit the GEA the package expects `Y`, a matrix of genotypes (encoded as integers) or allele frequencies and `X`, a matrix of environmental covariates. Then, to estimate genomic offsets the package expects two matrixes of current and altered/future environmental covariates, named `Xnow` and `Xpred`. However, in most cases, `X=Xnow`. We include a small toy dataset for you to play with the package. You can import it to the environment in Julia using
